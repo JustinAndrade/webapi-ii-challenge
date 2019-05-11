@@ -9,9 +9,13 @@ const router = express.Router();
 router.post('/', async (req, res) => {
 	try {
 		const newPost = await Posts.insert(req.body);
-		res.status(201).json(newPost);
+		if (newPost) {
+			res.status(201).json(newPost);
+		} else {
+			res.status(400).json({ message: 'Please provide title and contents for the post.' });
+		}
 	} catch (error) {
-		res.status(500).json({ message: 'Error adding new post.' });
+		res.status(500).json({ message: 'There was an error while saving the post to the database' });
 	}
 });
 
@@ -23,7 +27,7 @@ router.get('/', async (req, res) => {
 		res.status(200).json(posts);
 	} catch (error) {
 		res.status(500).json({
-			message: 'Error retreiving the posts.'
+			message: 'The posts information could not be retrieved.'
 		});
 	}
 });
@@ -33,9 +37,15 @@ router.get('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
 	try {
 		const post = await Posts.findById(req.params.id);
-		res.status(200).json(post);
+		if (post) {
+			res.status(200).json(post);
+		} else {
+			res.status(404).json({
+				message: '"The post with the specified ID does not exist." '
+			});
+		}
 	} catch (error) {
-		res.status(500).json({ message: 'Error finding post ID.' });
+		res.status(500).json({ message: 'The post information could not be retrieved.' });
 	}
 });
 
@@ -43,14 +53,14 @@ router.get('/:id', async (req, res) => {
 
 router.delete('/:id', async (req, res) => {
 	try {
-		const count = await Posts.remove(req.params.id);
-		if (count > 0) {
+		const post = await Posts.remove(req.params.id);
+		if (post) {
 			res.status(200).json({ message: 'The post has been deleted.' });
 		} else {
-			res.status(400).json({ message: "The post couldn't be found." });
+			res.status(404).json({ message: 'The post with the specified ID does not exist.' });
 		}
 	} catch (error) {
-		res.status(500).json({ message: 'Error finding ID to delete.' });
+		res.status(500).json({ message: 'The post could not be removed' });
 	}
 });
 
